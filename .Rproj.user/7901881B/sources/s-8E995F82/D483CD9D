@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1530869141297.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "D483CD9D",
+    "lastKnownWriteTime" : 1530869322,
+    "last_content_update" : 1530869322407,
+    "path" : "~/Rworks/Resources/elements/解析用 (2).R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "21,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

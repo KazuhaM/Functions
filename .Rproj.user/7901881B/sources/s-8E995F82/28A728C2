@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1530869110036.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "28A728C2",
+    "lastKnownWriteTime" : 1530870009,
+    "last_content_update" : 1530870009415,
+    "path" : "~/Rworks/Functions/DCA/DCA.r",
+    "project_path" : "DCA/DCA.r",
+    "properties" : {
+        "cursorPosition" : "6,14",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
