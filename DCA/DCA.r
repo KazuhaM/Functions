@@ -1,5 +1,5 @@
 ### ライブラリ読み込み　###
-library(vegan) 
+library(vegan)
 library(labdsv) #indval用
 
 ### 分割数設定　任意の数に変更してください　###
@@ -19,12 +19,101 @@ d
 
 # DCAの場合
 d.mds<-decorana(d)
+d.mds
 
 #MDSの場合
 d.mds<-metaMDS(d,zerodist="add") ##### zerodist="add" を追加
 stressplot(d.mds) # Shepard diagram を描く。
 d.mds
 
+# DCA_MDS共通
 summary(d.mds)
 plot(d.mds, type="t")
-biplot(d.mds, scaling=1)
+#biplot(d.mds, scaling=1)
+
+
+### クラスタリング ###
+sco<-scores(d.mds,display="sites") #地点の序列化スコア
+clus<-hclust(dist(sco),"ward.D2") #ウォード法改で
+#clus<-hclust(dist(sco),"average") #群平均法で
+#par(ps=5.5)
+plot(clus) #グラフ表示
+rect.hclust(clus,gnum_st)
+clus
+summary(clus)
+
+### グループ分けした序列を　グラフ表示 ###
+k<-cutree(clus,gnum_st)
+ordipointlabel(d.mds,display="sites",col = c(1:(gnum_st+1))[k],pch = c(1:gnum_st+1)[k])
+ordiellipse(d.mds,k, display="sites",kind="sd", conf=0.9,lwd=1,lty=2, col="black")
+
+
+### サイトの所属グループとグルーピングの妥当性MRPP
+#サイトの所属
+gnum_st<-6
+k<-cutree(clus,gnum_st)
+k
+clus.ade<-mrpp(d,k)
+clus.ade
+clus.ade$Pvalue
+
+### 地点の分割数ごとにリストの並び替えと指標種を計算 ###
+#変数初期化
+li<-list(NULL)
+me<-list(NULL)
+ordtxt<-NULL
+d2<-d #出力のためのデータ
+
+#最大数に分割したときの順番を取得
+tmp<-cbind(clus$order,c(1:row))
+tmp<-tmp[order(tmp[,1]),]
+tmp<-tmp[,2]
+
+#分割数分だけループ
+for( i in 1:gnum_st) {
+  ifelse(i==gnum_st,me[[i]]<-tmp,me[[i]]<-cutree(clus,i+1))
+  ordtxt[i]<-paste("me[[",i,"]]")#orderのための文字列
+  d2<-cbind(d2,me[[i]])
+  colnames(d2)[col+i]<-paste("group",i+1,sep="")
+  
+  dul<-indval(d,me[[i]]) #指標種分析 
+  dul<-data.frame(numeric.sp=names(dul$maxcls), community=dul$maxcls, indval=round(dul$indcls,3), pvalue=round(dul$pval,4))
+  dul<- dul[order(dul$community, dul$indval, dul$pvalue, decreasing=T),][,-1]
+  li[[i]]<-dul #指標種分析結果
+}
+ord<-eval(parse(text=paste("order(",paste(ordtxt,collapse=","),")")))
+d2<-d2[ord,]#並び替え
+
+d2<-t(d2) ###地点、種入れ替え
+
+### 種も同様に並び替え　###
+sco<-scores(d.mds,display="species")
+clus<-hclust(dist(sco),"average")
+me<-list(NULL)
+ordtxt<-NULL
+tmp<-cbind(clus$order,c(1:col)) #クラスターの順番を表の並び替えに利用するため
+tmp<-tmp[order(tmp[,1]),]
+tmp<-tmp[,2]
+
+for( i in 1:gnum_sp) {
+  ifelse(i==gnum_sp,me[[i]]<-tmp,me[[i]]<-cutree(clus,i+1))
+  ordtxt[i]<-paste("me[[",i,"]]")#orderのための文字列
+  d2<-cbind(d2,me[[i]])
+  colnames(d2)[row+i]<-paste("group",i+1,sep="")
+}
+
+# 並び替えの前に　必要ない行と列にNA代入
+for(i in 1:gnum_st){
+  for(j in 1:gnum_sp){
+    d2[col+i,row+j]<-NA
+  }
+}
+ord<-eval(parse(text=paste("order(",paste(ordtxt,collapse=","),")")))
+d2<-rbind(d2[ord,],d2[(col+1):(col+gnum_st),])#並び替え
+
+d2<-d2[,-(row+gnum_sp)]　#並び替えのための最終列を削除
+d2<-d2[-(col+gnum_st),] #並び替えのための最終行を削除
+
+### 並び替えた結果と指標種を書き出し
+write.table(d2,"結果.csv",sep=",",row.names=T,col.names=T)
+for(i in 1:gnum_st) write.table(li[[i]],paste("indval",i,".csv",sep=""),sep=",",row.names=T,col.names=T)
